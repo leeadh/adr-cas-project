@@ -1,0 +1,37 @@
+formatVersion: 1
+inputs: {}
+resources:
+  public:
+    type: Cloud.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'env:adr_aws_pub_sub'
+  ansible-test:
+    type: Cloud.Machine
+    properties:
+      image: linux_adr
+      flavor: micro_adr
+      cloudConfig: |
+        users:
+          - name: ubuntu
+            ssh-authorized-keys:
+              - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDbuzFI5ZjJyOraeaUuCgemMqQrKAZqJlpdIkYaJ0DgrGST0FEw+IUr2krpzh5JhN917yn1eSuhFa6boFaDJan/nVvCNohBcz8S1kYgeqpS1LZ5mJfYrsAGUOpl95x9DqI9WNA1seW3DiRUyY8Q1Q67vwrGsge3G1rzwjAv5NoDay2XGDZagNgEYc+N6i8KkgqItbkIiY9/HMI86LkVCSAUNVEbP0LjFOaR60Uy4xdyVjy44y2e5GbqvvirmO0iVT5Sf9ZjaYRCKopqo7jgdDnAqqns5TrlfXDrnpsr16DKliVVDelHVgeoVTL/h2F/GP47ahMvsQXhfE+BeZC0SFPR'
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']  
+      networks:
+        - network: '${resource.public.id}'
+  Cloud_Ansible_1:
+    type: Cloud.Ansible
+    properties:
+      host: '${resource["ansible-test"].*}'
+      inventoryFile: /etc/ansible/hosts
+      maxConnectionRetries: 20
+      playbooks:
+        provision:
+          - /root/playbooks/nginx-playbook.yml
+      groups:
+        - casservers
+      osType: linux
+      account: adrian_ansible_host
+      username: ubuntu
+      privateKeyFile: ~/.ssh/jenkins.pem
